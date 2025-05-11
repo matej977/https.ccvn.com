@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CCVN Shop</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000000;
+            font-family: 'Arial', sans-serif;
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                45deg,
+                #000,
+                #000 20px,
+                #ff00ff 20px,
+                #ff00ff 40px
+            );
+            opacity: 0.2;
+            z-index: -2;
+        }
+        
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.9) 70%);
+            z-index: -1;
+        }
+        
+        .static {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0.5 0"/></filter><rect width="100%" height="100%" filter="url(%23noiseFilter)"/></svg>');
+            opacity: 0.05;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        
+        .timestamp {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #ff00ff;
+            z-index: 100;
+        }
+        
+        .categories {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            font-family: 'Arial', sans-serif;
+            font-size: 14px;
+            color: #ff00ff;
+            text-align: right;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 3px solid #ff00ff;
+            z-index: 100;
+        }
+        
+        .categories ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .categories li {
+            margin-bottom: 5px;
+            cursor: pointer;
+        }
+        
+        .categories li:hover {
+            color: #ff00ff;
+        }
+        
+        .center-text {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 50px;
+            font-weight: bold;
+            color: #ff00ff;
+            text-shadow: 0 0 10px #ff00ff;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            z-index: 50;
+            pointer-events: none;
+        }
+        
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 0, 255, 0.3);
+            animation: scanline 6s linear infinite;
+            pointer-events: none;
+            z-index: 100;
+        }
+        
+        @keyframes scanline {
+            0% {
+                top: 0%;
+            }
+            100% {
+                top: 100%;
+            }
+        }
+        
+        .flicker {
+            animation: flicker 0.3s infinite alternate;
+        }
+        
+        @keyframes flicker {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.8;
+            }
+        }
+        
+        .content {
+            padding-top: 100vh;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .section {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 50px 20px;
+            box-sizing: border-box;
+        }
+        
+        .section h2 {
+            font-size: 36px;
+            color: #ff00ff;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+        }
+        
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            width: 100%;
+            max-width: 1200px;
+        }
+        
+        .product-item {
+            background-color: rgba(0, 0, 0, 0.6);
+            border: 1px solid #ff00ff;
+            border-radius: 5px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .product-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+        }
+        
+        .product-image {
+            width: 100%;
+            height: 280px;
+            background-color: #000000;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            color: #000000;
+            transition: transform 0.3s;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(255, 0, 255, 0.3);
+        }
+        
+        .product-image:hover {
+            transform: scale(1.05);
+            border-color: #ff00ff;
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.3);
+        }
+        
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .product-name {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: white;
+        }
+        
+        .product-price {
+            font-size: 18px;
+            color: #ff00ff;
+            margin-bottom: 15px;
+        }
+        
+        .current-section-indicator {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: #ff00ff;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            z-index: 100;
+            border: 1px solid #ff00ff;
+            transform: translateY(-100px);
+            transition: transform 0.3s ease-in-out;
+        }
+        
+        .current-section-indicator.show {
+            transform: translateY(0);
+        }
+        
+        /* Stil für ausverkaufte Produkte */
+        
+        
+    </style>
+</head>
+<head>
+    <meta charset="UTF-8">
+    <title>Gürtel Shop</title>>
+</head>
+<body>
+    <div class="background"></div>
+    <div class="overlay"></div>
+    <div class="static"></div>
+    <div class="scanline"></div>
+    
+    <div class="timestamp" id="timestamp"></div>
+    
+    <div class="categories">
+        <ul id="category-menu">
+            <li data-target="Mützen">MÜTZEN</li>
+            <li data-target="gurtel">GÜRTEL</li>
+            <li data-target="tshirts">T-SHIRTS</li>
+            <li data-target="hosen">HOSEN</li>
+            <li data-target="schuhe">SCHUHE</li>
+            <li data-target="parfume">PARFÜME</li>
+            <li data-target="anzuge">ANZÜGE</li>
+        </ul>
+    </div>
+    
+    <div class="center-text flicker">CCVN</div>
+    
+    <div class="current-section-indicator" id="section-indicator">GÜRTEL</div>
+    
+    <div class="content">
+
+
+<!-- Mützen sektion -->
+     <section id="Mützen" class="section">
+    <h2>MÜTZEN</h2>
+    <div class="product-grid"> 
+        <!-- Produkt 1 -->
+        <div class="product-item">
+            <div class="product-image">
+                <img src="gucci_cap-removebg-preview.webp" alt="gucci cap" width="500" height="400">
+            </div>
+            <div class="product-name">Classic Gucci cap</div>
+            <div class="product-price">€29,99</div>
+            <a href="https://www.instagram.com/Ccvnbln.shop" class="buy-button">
+                <span class="instagram-icon"></span> 
+                Kontakt auf Instagram!
+            </a>
+        </div>
+
+        <!-- Produkt 2 -->
+        <div class="product-item">
+            <div class="product-image">
+                <img src="lv_mutze-removebg-preview.webp" alt="Louis Vuitton Mütze" width="500" height="400">
+            </div>
+            <div class="product-name">Louis Vuitton Mützen</div>
+            <div class="product-price">€27,99</div>
+            <a href="https://www.instagram.com/Ccvnbln.shop" class="buy-button">
+                <span class="instagram-icon"></span> 
+                Kontakt auf Instagram!
+            </a>
+        </div>   
+    </div>
+</section>
+
+
+<!-- Gürtel Sektion -->
+<section id="gurtel" class="section">
+  <h2>GÜRTEL</h2>
+  <div class="product-grid"> 
+    <!-- Produkt 1 -->
+    <div class="product-item">
+      <div class="product-image">
+        <img src="luis_v_gurtel-removebg-preview.png" alt="Louis Vuitton Gürtel" width="500" height="400">
+      </div>
+      <div class="product-name">Louis Vuitton Gürtel</div>
+      <div class="product-price">€29,99</div>
+      <a href="https://www.instagram.com/Ccvnbln.shop" class="buy-button">
+        <span class="instagram-icon"></span> 
+        Kontakt auf Instagram!
+      </a>
+    </div>
+
+    <!-- Produkt 2 -->
+    <div class="product-item">
+      <div class="product-image">
+        <img src="bb_belt_p-removebg-preview.png" alt="Burberry Gürtel" width="500" height="400">
+      </div>
+      <div class="product-name">Burberry Gürtel</div>
+      <div class="product-price">€29,99</div>
+      <a href="https://www.instagram.com/Ccvnbln.shop" class="buy-button">
+        <span class="instagram-icon"></span> 
+        Kontakt auf Instagram!
+      </a>
+    </div>
+  </div>
+</section>
+
+
+                
+        
+                
+        
+        
+        <!-- T-Shirts Sektion -->
+        <section id="tshirts" class="section">
+            <h2>T-SHIRTS</h2>
+            <div class="product-grid">
+                <!-- Produkt 1 -->
+                <div class="product-item">
+                    <div class="product-image">
+                        <img src="armani_shirt-removebg-preview.png" alt="Ami paris T- T-Shirt">
+                    </div>
+                    <div class="product-name">Ami Paris T-Shirt</div>
+                    <div class="product-price">€34,99</div>
+                    <a href="https://www.instagram.com/Ccvnbln.shop" class="buy-button">
+  <span class="instagram-icon"></span> 
+  Kontakt auf Instagram!
+</a>
+
+            <link rel="stylesheet" href="style.css">
+                </div>
+                
+                <!-- Produkt 2 -->
+                <div class="product-item">
+                    <div class="product-image">
+                        <img src="blurberry_shirt-removebg-preview.png" alt="Bureberry T-Shirt">
+                    </div>
+                    <div class="product-name">Burberry T-Shirt</div>
+                    <div class="product-price">€29,99</div>
+                    <a href="https://www.instagram.com/Ccvnbln.shop" class="buy-button">
+  <span class="instagram-icon"></span> 
+  Kontakt auf Instagram!
+</a>
+
+            <link rel="stylesheet" href="style.css">
+                </div>
+                
+                <!-- Produkt 3 -->
+                <div class="product-item">
+                    <div class="product-image">
+                        <img src="lui_v_shirt-removebg-preview.webp" alt="lv t-shirt">
+                    </div>
+                    <div class="product-name">Louis Vuitton T-Shirt</div>
+                    <div class="product-price">44,99</div>
+                    <a href="https://www.instagram.com/Ccvnbln.shop" class="buy-button">
+  <span class="instagram-icon"></span> 
+  Kontakt auf Instagram!
+</a>
+
+            <link rel="stylesheet" href="style.css">
+                </div>
+       
+
+                <!-- Produkt 4 -->
+                <div class="product-item">
+                    <div class="product-image">
+                        <img src="lui_v_tshirt-removebg-preview.webp" alt="lv t-shirt">
+                    </div>
+                    <div class="product-name">White Louis Vuitton T-Shirt</div>
+                    <div class="product-price">44,99</div>
+                    <a href="https://www.instagram.com/Ccvnbln.shop" class="buy-button">
+  <span class="instagram-icon"></span> 
+  Kontakt auf Instagram!
+</a>
+
+            <link rel="stylesheet" href="style.css">
+                </div>
+
+                 <!-- Produkt 5 -->
+                <div class="product-item">
+                    <div class="product-image">
+                        <img src="white_ralph_lauren-removebg-preview_1.webp" alt="polo t-shirt">
+                    </div>
+                    <div class="product-name">White Polo T-Shirt</div>
+                    <div class="product-price">27,99</div>
+                    <a href="https://www.instagram.com/Ccvnbln.shop" class="buy-button">
+  <span class="instagram-icon"></span> 
+  Kontakt auf Instagram!
+</a>
+
+            <link rel="stylesheet" href="style.css">
+                </div>
+        </section>
+        
+        <!-- Hosen Sektion -->
+        <section id="hosen" class="section">
+            <h2>HOSEN</h2>
+            <div class="product-grid">
+                <!-- Produkt 1 -->
+                <div class="product-item">
+                    <div class="product-image">
+                        <img src="underarmour_shorts-removebg-preview.webp" alt="Designer Jeans">
+                    </div>
+                    <div class="product-name">Under Armour</div>
+                    <div class="product-price">€39,99</div>
+                    <a href="https://www.instagram.com/Ccvnbln.shop" class="buy-button">
+  <span class="instagram-icon"></span> 
+  Kontakt auf Instagram!
+</a>
+
+            <link rel="stylesheet" href="style.css">
+                </div>
+                
+                <!-- Produkt 2 -->
+                <div class="product-item">
+                    <div class="product-image">
+                        <img src="burberry_shorts-removebg-preview.webp" alt="Bureberry shorts">
+                    </div>
+                    <div class="product-name">Burberry Shorts</div>
+                    <div class="product-price">34,99</div>
+                    <a href="https://www.instagram.com/Ccvnbln.shop" class="buy-button">
+  <span class="instagram-icon"></span> 
+  Kontakt auf Instagram!
+</a>
+
+            <link rel="stylesheet" href="style.css">
+                </div>
+            </section>
+                
+        
+        <!-- Schuhe Sektion -->
+<section id="schuhe" class="section">
+    <h2>SCHUHE</h2>
+    <div class="product-grid">
+        <!-- Produkt 1 -->
+        <div class="product-item">
+            <div class="product-image">
+                <img src="balenciaga-removebg-preview.webp" alt="balenciaga schuhe">
+            </div>
+            <div class="product-name">Balenciaga Schuhe</div>
+            <div class="product-price">€64,99</div>
+            <a href="https://www.instagram.com/Ccvnbln.shop" class="buy-button">
+                <span class="instagram-icon"></span> Kontakt auf Instagram!
+            </a>
+        </div>
+
+        <!-- Produkt 2 -->
+        <div class="product-item">
+            <div class="product-image">
+                <img src="16ab83786a463addf4fcda9fe788ba84-removebg-preview.webp" alt="Bureberry slides">
+            </div>
+            <div class="product-name">Burberry Slides</div>
+            <div class="product-price">€19,99</div>
+            <a href="https://www.instagram.com/Ccvnbln.shop" class="buy-button">
+                <span class="instagram-icon"></span> Kontakt auf Instagram!
+            </a>
+        </div>
+
+        <!-- Produkt 3 -->
+        <div class="product-item">
+            <div class="product-image">
+                <img src="luis_v_schuhe-removebg-preview.webp" alt="Louis Vuitton Trainer Sneaker">
+            </div>
+            <div class="product-name">Louis Vuitton Trainer Sneaker</div>
+            <div class="product-price">€59,99</div>
+            <a href="https://www.instagram.com/Ccvnbln.shop" class="buy-button">
+                <span class="instagram-icon"></span> Kontakt auf Instagram!
+            </a>
+        </div>
+
+        <!-- Produkt 4 -->
+        <div class="product-item">
+            <div class="product-image">
+                <img src="black_dior-removebg-preview.webp" alt="Dior B30 Sneaker">
+            </div>
+            <div class="product-name">Dior B30 Sneaker</div>
+            <div class="product-price">€79,99</div>
+            <a href="https://www.instagram.com/Ccvnbln.shop" class="buy-button">
+                <span class="instagram-icon"></span> Kontakt auf Instagram!
+            </a>
+        </div>
+    </div>
+</section>
+
+<link rel="stylesheet" href="style.css">
+
+        
+        <!-- Parfüme Sektion mit erweiterten Produkten -->
+<section id="parfume" class="section">
+    <h2>PARFÜME</h2>
+    <div class="product-grid">
+        <!-- Produkt 1 -->
+        <div class="product-item">
+            <div class="product-image">
+                <img src="PACKSHOT_OUD_SATIN_70ML_EDP_VUE1-FACE_FOND-TRANSPARENT_640x640.webp" alt="Parfum">
+            </div>
+            <div class="product-name">Maison Francis Kurkdjian – Oud Satin Mood Extrait de Parfum</div>
+            <div class="product-price">€64,99</div>
+            <a href="https://www.instagram.com/Ccvnbln.shop" class="buy-button">
+                <span class="instagram-icon"></span> Kontakt auf Instagram!
+            </a>
+        </div>
+        
+        <!-- Produkt 2 -->
+        <div class="product-item">
+            <div class="product-image">
+                <img src="versache_eros_flames-removebg-preview.webp" alt="versace Parfum">
+            </div>
+            <div class="product-name">Versace Eros Flame</div>
+            <div class="product-price">€49,99</div>
+            <a href="https://www.instagram.com/Ccvnbln.shop" class="buy-button">
+                <span class="instagram-icon"></span> Kontakt auf Instagram!
+            </a>
+        </div>
+        
+        <!-- Produkt 3 -->
+        <div class="product-item">
+            <div class="product-image">
+                <img src="valentino_perfum-removebg-preview.webp" alt="valentino Parfum">
+            </div>
+            <div class="product-name">Valentino Donna Born In Roma</div>
+            <div class="product-price">€39,99</div>
+            <a href="https://www.instagram.com/Ccvnbln.shop" class="buy-button">
+                <span class="instagram-icon"></span> Kontakt auf Instagram!
+            </a>
+        </div>
+        
+        <!-- Produkt 4 -->
+        <div class="product-item">
+            <div class="product-image">
+                <img src="versache_eros-removebg-preview.webp" alt="versace Parfum">
+            </div>
+            <div class="product-name">Versace Eros Eau de Toilette</div>
+            <div class="product-price">€44,99</div>
+            <a href="https://www.instagram.com/Ccvnbln.shop" class="buy-button">
+                <span class="instagram-icon"></span> Kontakt auf Instagram!
+            </a>
+        </div>
+
+        <!-- Produkt 5 -->
+        <div class="product-item">
+            <div class="product-image">
+                <img src="tom_ford-removebg-preview.webp" alt="tom ford">
+            </div>
+            <div class="product-name">Tom Ford Tobacco Vanille Eau de Parfum</div>
+            <div class="product-price">€24,99</div>
+            <a href="https://www.instagram.com/Ccvnbln.shop" class="buy-button">
+                <span class="instagram-icon"></span> Kontakt auf Instagram!
+            </a>
+        </div>
+
+        <!-- Produkt 6 -->
+        <div class="product-item">
+            <div class="product-image">
+                <img src="layton_exclusive-removebg-preview.webp" alt="layton parfum">
+            </div>
+            <div class="product-name">Parfums de Marly – Layton Exclusif Eau de Parfum</div>
+            <div class="product-price">€47,99</div>
+            <a href="https://www.instagram.com/Ccvnbln.shop" class="buy-button">
+                <span class="instagram-icon"></span> Kontakt auf Instagram!
+            </a>
+        </div>
+
+        <!-- Produkt 7 -->
+        <div class="product-item">
+            <div class="product-image">
+                <img src="erba_pura-removebg-preview.png" alt="erba pura">
+            </div>
+            <div class="product-name">Erba Pura von Sospiro Perfumes</div>
+            <div class="product-price">€54,99</div>
+            <a href="https://www.instagram.com/Ccvnbln.shop" class="buy-button">
+                <span class="instagram-icon"></span> Kontakt auf Instagram!
+            </a>
+        </div>
+
+        <!-- Produkt 8 -->
+        <div class="product-item">
+            <div class="product-image">
+                <img src="angels_share-removebg-preview.webp" alt="angels share">
+            </div>
+            <div class="product-name">Angels Share by Kilian</div>
+            <div class="product-price">€44,99</div>
+            <a href="https://www.instagram.com/Ccvnbln.shop" class="buy-button">
+                <span class="instagram-icon"></span> Kontakt auf Instagram!
+            </a>
+        </div>
+    </div>
+</section>
+
+
+
+
+           
+
+        </section>
+        
+        <!-- Anzüge Sektion -->
+        <section id="anzuge" class="section">
+            <h2>ANZÜGE</h2>
+            <div class="product-grid">
+                <!-- Produkt 1 -->
+                <div class="product-item">
+                    <div class="product-image">
+                        <img src="underarmour_white-removebg-preview.webp" alt="white under armour anzug">
+                    </div>
+                    <div class="product-name">White Under Armour Anzug</div>
+                    <div class="product-price">€54,99</div>
+                    <a href="https://www.instagram.com/Ccvnbln.shop" class="buy-button">
+  <span class="instagram-icon"></span> 
+  Kontakt auf Instagram!
+</a>
+
+            <link rel="stylesheet" href="style.css">
+
+                </div>
+                
+                <!-- Produkt 2 -->
+                <div class="product-item">
+                    <div class="product-image">
+                        <img src="underarmour-removebg-preview.png" alt="Business Anzug">
+                    </div>
+                    <div class="product-name">Black blue Under Armour Anzug</div>
+                    <div class="product-price">€34,99</div>
+                    <a href="https://www.instagram.com/Ccvnbln.shop" class="buy-button">
+  <span class="instagram-icon"></span> 
+  Kontakt auf Instagram!
+</a>
+
+            <link rel="stylesheet" href="style.css">
+                </div>
+                
+                
+        </section>
+    </div>
+    
+    <script>
+        // Aktualisierung der Zeitanzeige
+        function updateTimestamp() {
+            const now = new Date();
+            const formatted = now.toLocaleString('de-DE', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            }).replace(',', '');
+            document.getElementById('timestamp').textContent = formatted;
+        }
+        
+        updateTimestamp();
+        setInterval(updateTimestamp, 1000);
+        
+        // Kategorie-Navigation einrichten
+        document.querySelectorAll('#category-menu li').forEach(item => {
+            item.addEventListener('click', () => {
+                const targetId = item.getAttribute('data-target');
+                const targetElement = document.getElementById(targetId);
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+        
+        // Aktuellen Abschnitt anzeigen beim Scrollen
+        const sections = document.querySelectorAll('.section');
+        const sectionIndicator = document.getElementById('section-indicator');
+        
+        function updateCurrentSection() {
+            const scrollPosition = window.scrollY + window.innerHeight / 2;
+            
+            let currentSection = null;
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionBottom = sectionTop + section.offsetHeight;
+                
+                if (scrollPosition >= sectionTop && scrollPosition < sectionBottom) {
+                    currentSection = section;
+                }
+            });
+            
+            if (currentSection) {
+                const sectionId = currentSection.id;
+                const sectionName = currentSection.querySelector('h2').textContent;
+                sectionIndicator.textContent = sectionName;
+                sectionIndicator.classList.add('show');
+            } else {
+                sectionIndicator.classList.remove('show');
+            }
+        }
+        
+        window.addEventListener('scroll', updateCurrentSection);
+        updateCurrentSection(); // Initial call
+        
+        // Nach oben scrollen Button verstecken bei Start
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                updateCurrentSection();
+            }, 100);
+        });
+    </script>
+</body>
+</html>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-content">
+    <!-- Linkes Logo-Bild -->
+    <img src="IMG_9677.webp" alt="Logo links" class="footer-logo">
+
+    <!-- Text in der Mitte -->
+    <div class="footer-text">
+      <p>Made by Matej</p>
+      <p>
+        <a href="mailto:chroma.1444@gmail.com">chroma.1444@gmail.com</a> |
+        <a href="mailto:ccvblnshop@gmail.com">ccvblnshop@gmail.com</a>
+      </p>
+      <p>Folgt uns auf TikTok: <strong>@ccvnbln.shop</strong></p>
+    </div>
+
+    <!-- Rechtes Logo-Bild -->
+    <img src="IMG_9677.webp" alt="Logo rechts" class="footer-logo">
+  </div>
+</footer>

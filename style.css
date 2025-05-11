@@ -1,0 +1,84 @@
+.buy-button {
+  border: 2px solid #ff00ff;
+  background-color: transparent;
+  color: #ff00ff;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 25px;
+  transition: all 0.3s ease;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px; /* Abstand zwischen Text und Icon */
+}
+
+.buy-button:hover {
+  background-color: #ff00ff;
+  color: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transform: scale(1.05);
+}
+
+.buy-button:active {
+  transform: scale(0.98);
+}
+
+/* Instagram Icon hinzufügen */
+.buy-button .instagram-icon {
+  width: 20px;
+  height: 20px;
+  background-image: url('https://upload.wikimedia.org/wikipedia/commons/9/95/Instagram_logo_2022.svg');
+  background-size: cover;
+  background-position: center;
+}
+
+.footer {
+  background-color: #0a0a0a;
+  padding: 30px 0;
+  color: #fff;
+  margin-top: 60px;
+  border-top: 2px solid #ff00ff33;
+  box-shadow: 0 -2px 15px #ff00ff44;
+}
+
+.footer-content {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: auto;
+  padding: 0 20px;
+}
+
+.footer-logo {
+  width: 90px;
+  height: 90px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 10px #ff00ffaa);
+}
+
+.footer-text {
+  flex: 1;
+  text-align: center;
+  font-size: 14px;
+  color: #fff;
+  text-shadow: 0 0 5px #ff00ff;
+}
+
+.footer-text a {
+  color: #ff00ff;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.footer-text a:hover {
+  color: #ff66ff;
+  text-shadow: 0 0 10px #ff00ff;
+}
